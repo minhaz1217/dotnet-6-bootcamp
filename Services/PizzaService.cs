@@ -1,70 +1,45 @@
 ﻿using WebApi_2022.Models;
+using WebApi_2022.Repository;
 
 namespace WebApi_2022.Services
 {
     public class PizzaService
     {
-        private IList<Pizza> Pizzas { get; }
-
-        public PizzaService() 
+        private readonly IPizzaRepository _pizzaRepository;
+        public PizzaService(IPizzaRepository pizzaRepository)
         {
-            Pizzas = new List<Pizza>();
-            for (int i = 0; i < 5; i++) 
-            {
-                Pizzas.Add(new Pizza
-                {
-                    Id = i + 1,
-                    Name = "Pizza " + i,
-                    Price = (i + 1) * 100
-                });
-            }
+            _pizzaRepository = pizzaRepository;
         }
 
         public IList<Pizza> GetAll() 
         {
-            return Pizzas.ToList();
+            return _pizzaRepository.GetAll();
         }
 
 
-        public Pizza Get(int id)
+        public Pizza? Get(int id)
         {
-            var pizza = Pizzas.FirstOrDefault(x => x.Id == id);
-            if(pizza == null)
-            {
-                return null;
-            }
-            return pizza;
+            return _pizzaRepository.Get(id);
         }
 
-        public void Add(Pizza pizza)
+        public void Create(Pizza pizza)
         {
-            pizza.Id = Pizzas.Count + 1;
-            Pizzas.Add(pizza);
+            _pizzaRepository.Create(pizza);
         }
 
         public void Update(int id, Pizza pizza)
         {
-            var foundPizza = Pizzas.FirstOrDefault(x => x.Id == id);
-            if(foundPizza == null)
+            if(id != pizza.Id)
             {
-                return;
+                throw new ArgumentException("id didn't match with pizza id");
             }
-
-            foundPizza.Name = pizza.Name;
-            foundPizza.Price = pizza.Price;
+            _pizzaRepository.Update(pizza);
             return;
         }
 
         public void Delete(int id)
         {
-            var foundPizza = Pizzas.FirstOrDefault(x => x.Id == id);
-            if(foundPizza == null)
-            {
-                return;
-            }
-            Pizzas.Remove(foundPizza);
+            _pizzaRepository.Delete(id);
         }
-        
-
     }
 }

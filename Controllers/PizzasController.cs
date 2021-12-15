@@ -1,6 +1,7 @@
 ﻿
 using Microsoft.AspNetCore.Mvc;
 using WebApi_2022.Models;
+using WebApi_2022.Repository;
 using WebApi_2022.Services;
 
 namespace WebApi_2022.Controllers
@@ -10,9 +11,20 @@ namespace WebApi_2022.Controllers
     {
 
         private readonly PizzaService _pizzasService;
-        public PizzasController() 
+        private readonly IConfiguration _config;
+        public PizzasController(IConfiguration config)
         {
-            _pizzasService = new PizzaService();
+            var pizzaRepository = new PizzaMySqlRepository();
+            _pizzasService = new PizzaService(pizzaRepository);
+            _config = config;
+        }
+
+        // named route
+        // exception handling in api
+        [HttpGet("read")]
+        public IActionResult ReadKey()
+        {
+            return Ok(_config.GetValue<string>("MySQLConnectionString"));
         }
 
         [HttpGet]
@@ -36,8 +48,28 @@ namespace WebApi_2022.Controllers
         [HttpPost]
         public IActionResult Create(Pizza pizza)
         {
-            _pizzasService.Add(pizza);
-            Console.WriteLine(pizza.Id);
+            _pizzasService.Create(pizza);
+            return Ok(_pizzasService.GetAll());
+        }
+
+        [HttpPut]
+        public IActionResult Update(int id, [FromBody] Pizza pizza)
+        {
+            try
+            {
+                _pizzasService.Update(id, pizza);
+                return Ok(_pizzasService.GetAll());
+            }catch(Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+
+        [HttpDelete]
+        public IActionResult Delete(int id)
+        {
+            _pizzasService.Delete(id);
             return Ok(_pizzasService.GetAll());
         }
 
